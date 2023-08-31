@@ -14,6 +14,8 @@ pip3 install pyecharts
 前端依赖都是cdn引入,不需要安装
  ~~因为我一点后端也不会,python都是现学的,写的大概很烂~~
 
+ 目前还没有做移动端适配,使用网页端以获得更佳体验
+
 ## 关于数据
 /data/upinfo.json 管理右侧up主列表
 /data/videolist.json 管理视频信息
