@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="referrer" content="no-referrer" />
+    <title>可视化电子地图册</title>
+    <link rel="stylesheet" href="//unpkg.com/@layui/layui-vue/lib/index.css" />
+    <script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+    <script type="text/javascript" src="https://assets.pyecharts.org/assets/v5/maps/world.js"></script>
+    <script type="text/javascript" src="https://assets.pyecharts.org/assets/v5/maps/china.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/vue@next"></script>
+    <script src="//unpkg.com/@layui/layui-vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-echarts@latest"></script>
+</head>
+<body>
+<div id="app">
+    <div style="display: flex;width: 98vw;height: 97vh;padding: 8px;">
+        <div id="app2" ref="app2">
+            <v-chart id="chart" :option="chart" @click="onClick" style="width:79vw;" />
+        </div>
+        <div id="app1" ref="app1">
+                <div  style="width: 20vw;max-height: 97vh;overflow:auto;">
+                <lay-input prefix-icon="layui-icon-search"  placeholder="支持以国别和标题搜索 按回车搜索" v-model="searchtext" @keyup.enter="onEnter">
+                </lay-input>
+                <lay-collapse simple style="margin-top: 8px;" v-model="openKeys" v-if="collapseshow">
+                    <lay-collapse-item :id="index" v-for="(item,index) in upinfo">
+                        <template #title>
+                            <img style="height: 20px;width: 20px;border-radius: 50%;position: absolute;top: 50%;transform: translate(5px, -50%);" :src="item.avatar" alt="">
+                            <div style="position: absolute;top: 50%;transform: translate(35px, -50%);">{{item.name}}</div>
+                        </template>
+                        <div style="display: flex;margin-top: 8px;cursor: pointer;" @click="openweb(item2.url)" v-for="(item2,index) in item.videolist">
+                            <div class="leftimg">
+                                <img :src="item2.cover" style="width: 100px">
+                            </div>
+                            <div class="righttext" style="margin-left: 8px;">
+                                <div class="title">{{item2.title}}</div>
+                                <div class="Countryname" style="color: #8c8c8c;margin-top: 2px;">{{item2.country}}</div>
+                            </div>
+                        </div>
+                </lay-collapse-item>
+                </lay-collapse>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const app = Vue.createApp({
+        data () {
+            return {
+                mapData:'',
+                upinfo:[],
+                originlist:[],
+                openKeys:[],
+                chart:'',
+                searchtext:'',
+                collapseshow:true
+            }
+        },
+        methods: {
+            fetchData() {
+                axios.get("https://map.huan-yue.org:443/barChart").then((res)=>{
+                    if(res.status==200){
+                        this.chart = JSON.parse(res.data)
+                    }
+                })
+            },
+            getData() {
+                axios.get("https://map.huan-yue.org:443/getData").then((res)=>{
+                    if(res.status==200){
+                        this.mapData = JSON.parse(res.data).videolist;
+                        console.log(this.mapData)
+                        this.upinfo.map((item1,index1)=>{
+                            item1.videolist = []
+                            this.mapData.map((item2,index2)=>{
+                                if(item1.name==item2.upname){
+                                    item1.videolist.push(item2)
+                                }
+                                if(index2==this.mapData.length-1){
+                                    item1.videolist.sort((a,b)=>{
+                                        b.time-a.time
+                                    })
+                                    if(index1==this.upinfo.length-1){
+                                        this.originlist= JSON.parse(JSON.stringify(this.upinfo));
+                                    }
+                                }
+                            })
+                        })
+                    }
+                })
+            },
+            getUpInfo() {
+                axios.get("https://map.huan-yue.org:443/getUpInfo").then((res)=>{
+                    if(res.status==200){
+                        this.upinfo = JSON.parse(res.data).upinfo;
+                        console.log(this.upinfo)
+                        this.getData();
+                    }
+                })
+            },
+            onClick(event){
+                if(event.name==this.searchtext){
+                    this.searchtext=''
+                }else{
+                    this.searchtext=event.name
+                }
+                this.onEnter();
+                console.log(event.name)
+            },
+            onEnter(){
+                if(!this.searchtext){
+                    this.upinfo = JSON.parse(JSON.stringify(this.originlist)) 
+                    this.openKeys=[]
+                    this.collapseshow=false
+                    let timer = setTimeout(()=>{
+                        clearTimeout(timer)
+                        this.collapseshow=true
+                    })
+                }
+                else{
+                    this.openKeys=[]
+                    this.upinfo.map((item,index1)=>{
+                        item.videolist=[]
+                        this.mapData.map((item2,index2)=>{
+                            if((item2.title.indexOf(this.searchtext)!=-1 || item2.country.indexOf(this.searchtext)!=-1) && item.name == item2.upname){
+                                item.videolist.push(item2)
+                            }
+                            if(index2==this.mapData.length-1){
+                                if(item.videolist.length>0){
+                                    item.videolist.sort((a,b)=>{
+                                        b.time-a.time
+                                    })
+                                    this.openKeys.push(index1)
+                                    console.log(this.openKeys)
+                                }
+                                if(index1==this.upinfo.length-1){
+                                        console.log('123')
+                                        this.collapseshow=false
+                                        let timer = setTimeout(()=>{
+                                            clearTimeout(timer)
+                                            this.collapseshow=true
+                                        })
+                                        
+                                    }
+                            }
+                        })
+                    })
+                }
+            },
+            openweb(url){
+			    window.open(url,'_blank','')
+		    },
+        },
+        mounted() {
+            this.fetchData();
+            this.getUpInfo();
+	    },    
+    });
+    app.component('v-chart', VueECharts);
+    app.use(LayuiVue);
+    app.mount("#app");
+  </script>
+</body>
+</html>
