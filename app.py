@@ -31,13 +31,13 @@ def checkvideoinfo():
             print('已存在数据')
         else:
             temp = getvideoinfo(item)
-            print('获取数据!')
+            # print('获取数据!')
             if(temp):
                 item = temp 
             time.sleep(3)
     with open('./data/videolist.json',"w",encoding="utf-8") as f:
         jsons.dump(listinfo,f,indent=4, ensure_ascii=False)
-        print("加载入文件完成...")
+        # print("加载入文件完成...")
         for item in listinfo['videolist']:
             if (item['country'] in data1):
                 p = data1.index(item['country'])
@@ -76,8 +76,33 @@ def bar_base() -> Map:
         )
     return c
 
+def checkupinfo():
+    with open('./data/upinfo.json', 'r',encoding='utf-8') as fcc_file:
+        listinfo = jsons.load(fcc_file)
+    for item in listinfo['upinfo']:
+        temp = getupinfo(item)
+        if(temp):
+            item = temp 
+        time.sleep(3)
+    with open('./data/upinfo.json',"w",encoding="utf-8") as f:
+        jsons.dump(listinfo,f,indent=4, ensure_ascii=False)
+    return
+
+def getupinfo(item):
+    print(item)
+    res = requests.get(url = 'https://tenapi.cn/v2/biliinfo?uid='+item['id'])
+    request = res.json()
+    print(request)
+    if (request['code']==200):
+        item["name"] = request['data']['name']
+        item["avatar"] = request['data']['avatar']
+        return item
+    else:
+        print('接口出错')
+        return
 
 checkvideoinfo()
+checkupinfo()
 
 @app.route("/barChart", methods=["GET"])
 async def draw_bar_chart(request):
@@ -98,13 +123,13 @@ async def return_upinfo(request):
 async def index(request):
     return html(open("./templates/index.html",encoding='utf-8').read())
 
-
 ssl = {
     "cert": "/usr/local/etc/xray/cert/sanicfullchain.cer",
     "key": "/usr/local/etc/xray/cert/sanicprivate.key",
 }
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=443, fast=True,ssl=ssl)
+    app.run(host='0.0.0.0', port=443,fast= True,ssl= ssl)
 
 name_map = {
     'Singapore': '新加坡',

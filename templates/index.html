@@ -17,11 +17,18 @@
 <body>
 <div id="app">
     <div style="display: flex;width: 98vw;height: 97vh;padding: 8px;">
-        <div id="app2" ref="app2">
-            <v-chart id="chart" :option="chart" @click="onClick" style="width:79vw;" />
+        <div style="width:79vw;">
+            <div>
+                <v-chart id="chart" :option="chart" @click="onClick" style="height: 97vh;" />
+            </div>
+            <div style="margin-top: 3px;">
+                <a href="https://github.com/Ksdb104/digitalMap" target="_blank">GitHub Page</a>
+                <strong style="color: red;margin-left: 8px;">*本项目所用地图仅为标识,不做任何划界参考,也不代表本人的任何立场*</strong>
+            </div>
         </div>
-        <div id="app1" ref="app1">
-                <div  style="width: 20vw;max-height: 97vh;overflow:auto;">
+
+        <div>
+            <div  style="width: 20vw;max-height: 97vh;overflow:auto;">
                 <lay-input prefix-icon="layui-icon-search"  placeholder="支持以国别和标题搜索 按回车搜索" v-model="searchtext" @keyup.enter="onEnter">
                 </lay-input>
                 <lay-collapse simple style="margin-top: 8px;" v-model="openKeys" v-if="collapseshow">
@@ -79,7 +86,7 @@
                                 }
                                 if(index2==this.mapData.length-1){
                                     item1.videolist.sort((a,b)=>{
-                                        b.time-a.time
+                                        return b.time-a.time
                                     })
                                     if(index1==this.upinfo.length-1){
                                         this.originlist= JSON.parse(JSON.stringify(this.upinfo));
@@ -129,13 +136,12 @@
                             if(index2==this.mapData.length-1){
                                 if(item.videolist.length>0){
                                     item.videolist.sort((a,b)=>{
-                                        b.time-a.time
+                                        return b.time-a.time
                                     })
                                     this.openKeys.push(index1)
                                     console.log(this.openKeys)
                                 }
                                 if(index1==this.upinfo.length-1){
-                                        console.log('123')
                                         this.collapseshow=false
                                         let timer = setTimeout(()=>{
                                             clearTimeout(timer)
