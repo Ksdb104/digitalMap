@@ -6,11 +6,17 @@
 ![image](https://github.com/Ksdb104/digitalMap/assets/36178808/447c6306-b4d4-4a4d-aabd-6c07808888f1)
 点选左侧地图能自动检索右侧视频,也可以自己搜索
 主要使用了python pyecharts和sanic
+使用 [bilibili-api-python](https://github.com/Nemo2011/bilibili-api) 获取b站up的相关信息
 ```
 apt install python3
 pip3 install sanic
 pip3 install pyecharts
+pip3 install bilibili-api-python
 ```
+需要设置**data/app.py**中的api凭据,具体获取方法可以参考
+https://nemo2011.github.io/bilibili-api/#/get-credential
+![image](https://github.com/Ksdb104/digitalMap/assets/36178808/61b26205-135b-4fad-ab77-84691834d2ea)
+
 前端依赖都是cdn引入,不需要安装
  ~~因为我一点后端也不会,python都是现学的,写的大概很烂~~
 
