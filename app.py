@@ -6,6 +6,7 @@ from sanic.response import json, html
 import json as jsons
 import requests
 import time
+import asyncio
 
 from pyecharts import options as opts
 from pyecharts.charts import Map
@@ -14,6 +15,7 @@ from pyecharts.charts import Line
 from pyecharts.charts import Geo
 from pyecharts.faker import Faker
 from pyecharts.globals import ThemeType
+from bilibili_api import user,Credential
 
 # 初始化 Sanic
 # init_opts=opts.InitOpts(theme=ThemeType.LIGHT)
@@ -22,6 +24,7 @@ app = Sanic(__name__)
 data1=[]
 data2=[]
 countryData=[]
+credential = Credential(sessdata="", bili_jct="", buvid3="", dedeuserid="")
 
 def checkvideoinfo():
     with open('./data/videolist.json', 'r',encoding='utf-8') as fcc_file:
@@ -76,33 +79,24 @@ def bar_base() -> Map:
         )
     return c
 
-def checkupinfo():
+async def checkupinfo():
     with open('./data/upinfo.json', 'r',encoding='utf-8') as fcc_file:
         listinfo = jsons.load(fcc_file)
     for item in listinfo['upinfo']:
-        temp = getupinfo(item)
-        if(temp):
-            item = temp 
+        userinfo = user.User(uid=item['id'],credential=credential)
+        request = await userinfo.get_user_info()
+        print(request)
+        if(request):
+            item["name"] = request['name']
+            item["avatar"] = request['face']
         time.sleep(3)
     with open('./data/upinfo.json',"w",encoding="utf-8") as f:
         jsons.dump(listinfo,f,indent=4, ensure_ascii=False)
     return
 
-def getupinfo(item):
-    print(item)
-    res = requests.get(url = 'https://tenapi.cn/v2/biliinfo?uid='+item['id'])
-    request = res.json()
-    print(request)
-    if (request['code']==200):
-        item["name"] = request['data']['name']
-        item["avatar"] = request['data']['avatar']
-        return item
-    else:
-        print('接口出错')
-        return
-
+asyncio.get_event_loop().run_until_complete(checkupinfo())
 checkvideoinfo()
-checkupinfo()
+# checkupinfo()
 
 @app.route("/barChart", methods=["GET"])
 async def draw_bar_chart(request):
@@ -129,7 +123,7 @@ ssl = {
 }
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=443,fast= True,ssl= ssl)
+    asyncio.run(app.run(host='0.0.0.0', port=443,fast=True,ssl=ssl))
 
 name_map = {
     'Singapore': '新加坡',
